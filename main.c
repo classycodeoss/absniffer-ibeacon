@@ -16,16 +16,17 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <ble_gap.h>
-#include "nordic_common.h"
-#include "nrf_soc.h"
+
+#include "ble_gap.h"
 #include "nrf_sdh.h"
+#include "nrf_soc.h"
 #include "nrf_sdh_ble.h"
 #include "ble_advdata.h"
 #include "app_timer.h"
 
-#include "nrf_log.h"
-#include "nrf_log_ctrl.h"
-#include "nrf_log_default_backends.h"
+#include "uart_cmd.h"
+
+#define FIRMWARE_VERSION                "1.0.0"
 
 // Radio transmit power in dBm (accepted values are -40, -20, -16, -12, -8, -4, 0, 3, and 4 dBm).
 #define TX_POWER                        (-16)
@@ -47,29 +48,36 @@
 #define APP_COMPANY_IDENTIFIER          0x004c      // Company identifier for Apple iBeacon
 
 // Beacon identity
-#define APP_MAJOR_VALUE                 0x00, 0x01
-#define APP_MINOR_VALUE                 0x00, 0x01
-#define APP_BEACON_UUID                 0xcc, 0xcc, 0xcc, 0xcc,    0xcc, 0xcc, 0xcc, 0xcc,    0xcc, 0xcc, 0xcc, 0xcc,    0xcc, 0xcc, 0xcc, 0xcc
+#define DEFAULT_MAJOR_VALUE             1
+#define DEFAULT_MINOR_VALUE             1
+#define DEFAULT_BEACON_UUID             { 0xcc, 0xcc, 0xcc, 0xcc,    0xcc, 0xcc, 0xcc, 0xcc,    0xcc, 0xcc, 0xcc, 0xcc,    0xcc, 0xcc, 0xcc, 0xcc }
+static uint8_t  m_default_beacon_uuid[] = DEFAULT_BEACON_UUID;
 
 static ble_gap_adv_params_t m_adv_params;
-static uint8_t              m_beacon_info[APP_BEACON_INFO_LENGTH] = {
-        APP_DEVICE_TYPE,
-        APP_ADV_DATA_LENGTH,
-        APP_BEACON_UUID,
-        APP_MAJOR_VALUE,
-        APP_MINOR_VALUE,
-        APP_MEASURED_RSSI
-};
+static uint8_t m_beacon_info[APP_BEACON_INFO_LENGTH];
 static ble_advdata_manuf_data_t m_manuf_specific_data;
+
+static uart_cmd_client_t m_uart_cmd_client;
 
 void assert_nrf_callback(uint16_t line_num, const uint8_t *p_file_name) {
     app_error_handler(DEAD_BEEF, line_num, p_file_name);
 }
 
-static void advertising_init(void) {
+static void advertising_init(const uint8_t* beacon_uuid, uint16_t major, uint16_t minor) {
     uint32_t err_code;
     ble_advdata_t adv_data;
     uint8_t flags = BLE_GAP_ADV_FLAG_BR_EDR_NOT_SUPPORTED;
+    uint16_t short_val;
+
+    m_beacon_info[0] = APP_DEVICE_TYPE;
+    m_beacon_info[1] = APP_ADV_DATA_LENGTH;
+    memcpy(&m_beacon_info[2], beacon_uuid, 16);
+
+    short_val= __htons(major);
+    memcpy(&m_beacon_info[18], &short_val, sizeof(short_val));
+    short_val = __htons(minor);
+    memcpy(&m_beacon_info[20], &short_val, sizeof(short_val));
+    m_beacon_info[22] = APP_MEASURED_RSSI;
 
     m_manuf_specific_data.company_identifier = APP_COMPANY_IDENTIFIER;
     m_manuf_specific_data.data.p_data = (uint8_t *) m_beacon_info;
@@ -92,19 +100,48 @@ static void advertising_init(void) {
     m_adv_params.timeout = 0;       // Never time out
 }
 
-/*
 static void advertising_stop(void) {
     ret_code_t err_code = sd_ble_gap_adv_stop();
     APP_ERROR_CHECK(err_code);
-    NRF_LOG_INFO("... stopped advertising");
 }
-*/
 
 static void advertising_start(void) {
     ret_code_t err_code;
-    NRF_LOG_DEBUG("Starting to advertise...");
     err_code = sd_ble_gap_adv_start(&m_adv_params, APP_BLE_CONN_CFG_TAG);
     APP_ERROR_CHECK(err_code);
+}
+
+static void handle_information_cmd() {
+    char buf[256];
+    char mac_addr_str[32];
+    ble_gap_addr_t mac_addr;
+
+    // Send firmware version and MAC address
+    sd_ble_gap_addr_get(&mac_addr);
+    sprintf(mac_addr_str, "%2x:%2x:%2x:%2x:%2x:%2x", mac_addr.addr[0], mac_addr.addr[1], mac_addr.addr[2],
+            mac_addr.addr[3], mac_addr.addr[4], mac_addr.addr[5]);
+    sprintf(buf, "V%s %s", FIRMWARE_VERSION, mac_addr_str);
+    uart_cmd_send_information_response(buf);
+}
+
+static void handle_configuration_cmd(const uint8_t* proximity_uuid, uint16_t major, uint16_t minor) {
+    advertising_stop();
+    advertising_init(proximity_uuid, major, minor);
+    advertising_start();
+    uart_cmd_send_configuration_response(0);
+}
+
+static void uart_cmd_evt_handler(const uart_cmd_evt_t *p_uart_cmd_evt) {
+    switch (p_uart_cmd_evt->evt_type) {
+        case INFORMATION: // Send firmware version and MAC address
+            handle_information_cmd();
+            break;
+        case CONFIGURATION:
+            handle_configuration_cmd(p_uart_cmd_evt->proximity_uuid, p_uart_cmd_evt->major, p_uart_cmd_evt->minor);
+            break;
+        default:
+            break;
+    }
 }
 
 static void ble_stack_init(void) {
@@ -128,27 +165,27 @@ static void ble_stack_init(void) {
     APP_ERROR_CHECK(err_code);
 }
 
-static void log_init(void) {
-    ret_code_t err_code = NRF_LOG_INIT(NULL);
-    APP_ERROR_CHECK(err_code);
-    NRF_LOG_DEFAULT_BACKENDS_INIT();
-}
-
 static void timer_init(void) {
     ret_code_t err_code = app_timer_init();
     APP_ERROR_CHECK(err_code);
 }
 
+static void uart_init() {
+    uint32_t err_code;
+    memset(&m_uart_cmd_client, 0, sizeof(uart_cmd_client_t));
+    m_uart_cmd_client.evt_handler = uart_cmd_evt_handler;
+    err_code = uart_cmd_init(&m_uart_cmd_client);
+    APP_ERROR_CHECK(err_code);
+}
+
 int main(void) {
-    log_init();
     timer_init();
+    uart_init();
     ble_stack_init();
-    advertising_init();
+    advertising_init(m_default_beacon_uuid, DEFAULT_MAJOR_VALUE, DEFAULT_MINOR_VALUE);
     advertising_start();
     while (true) {
-        if (!NRF_LOG_PROCESS()) { // process deferred logs
-            uint32_t err_code = sd_app_evt_wait();
-            APP_ERROR_CHECK(err_code);
-        }
+        uint32_t err_code = sd_app_evt_wait();
+        APP_ERROR_CHECK(err_code);
     }
 }

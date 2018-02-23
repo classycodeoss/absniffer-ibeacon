@@ -1,9 +1,64 @@
+/**
+ * Copyright (c) 2017 - 2017, Nordic Semiconductor ASA
+ * 
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ *    list of conditions and the following disclaimer.
+ * 
+ * 2. Redistributions in binary form, except as embedded into a Nordic
+ *    Semiconductor ASA integrated circuit in a product or a software update for
+ *    such product, must reproduce the above copyright notice, this list of
+ *    conditions and the following disclaimer in the documentation and/or other
+ *    materials provided with the distribution.
+ * 
+ * 3. Neither the name of Nordic Semiconductor ASA nor the names of its
+ *    contributors may be used to endorse or promote products derived from this
+ *    software without specific prior written permission.
+ * 
+ * 4. This software, with or without modification, must only be used with a
+ *    Nordic Semiconductor ASA integrated circuit.
+ * 
+ * 5. Any software provided in binary form under this license must not be reverse
+ *    engineered, decompiled, modified and/or disassembled.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY NORDIC SEMICONDUCTOR ASA "AS IS" AND ANY EXPRESS
+ * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL NORDIC SEMICONDUCTOR ASA OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+ * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * 
+ */
+
+
+
 #ifndef SDK_CONFIG_H
 #define SDK_CONFIG_H
 // <<< Use Configuration Wizard in Context Menu >>>\n
 #ifdef USE_APP_CONFIG
 #include "app_config.h"
 #endif
+// <h> Board Support 
+
+//==========================================================
+// <q> BSP_BTN_BLE_ENABLED  - bsp_btn_ble - Button Control for BLE
+ 
+
+#ifndef BSP_BTN_BLE_ENABLED
+#define BSP_BTN_BLE_ENABLED 1
+#endif
+
+// </h> 
+//==========================================================
+
 // <h> nRF_BLE 
 
 //==========================================================
@@ -11,7 +66,7 @@
  
 
 #ifndef BLE_ADVERTISING_ENABLED
-#define BLE_ADVERTISING_ENABLED 0
+#define BLE_ADVERTISING_ENABLED 1
 #endif
 
 // <q> BLE_DTM_ENABLED  - ble_dtm - Module for testing RF/PHY using DTM commands
@@ -28,6 +83,34 @@
 #define BLE_RACP_ENABLED 0
 #endif
 
+// <e> NRF_BLE_CONN_PARAMS_ENABLED - ble_conn_params - Initiating and executing a connection parameters negotiation procedure
+//==========================================================
+#ifndef NRF_BLE_CONN_PARAMS_ENABLED
+#define NRF_BLE_CONN_PARAMS_ENABLED 1
+#endif
+// <o> NRF_BLE_CONN_PARAMS_MAX_SLAVE_LATENCY_DEVIATION - The largest acceptable deviation in slave latency. 
+// <i> The largest deviation (+ or -) from the requested slave latency that will not be renegotiated.
+
+#ifndef NRF_BLE_CONN_PARAMS_MAX_SLAVE_LATENCY_DEVIATION
+#define NRF_BLE_CONN_PARAMS_MAX_SLAVE_LATENCY_DEVIATION 499
+#endif
+
+// <o> NRF_BLE_CONN_PARAMS_MAX_SUPERVISION_TIMEOUT_DEVIATION - The largest acceptable deviation (in 10 ms units) in supervision timeout. 
+// <i> The largest deviation (+ or -, in 10 ms units) from the requested supervision timeout that will not be renegotiated.
+
+#ifndef NRF_BLE_CONN_PARAMS_MAX_SUPERVISION_TIMEOUT_DEVIATION
+#define NRF_BLE_CONN_PARAMS_MAX_SUPERVISION_TIMEOUT_DEVIATION 65535
+#endif
+
+// </e>
+
+// <q> NRF_BLE_GATT_ENABLED  - nrf_ble_gatt - GATT module
+ 
+
+#ifndef NRF_BLE_GATT_ENABLED
+#define NRF_BLE_GATT_ENABLED 1
+#endif
+
 // <q> NRF_BLE_QWR_ENABLED  - nrf_ble_qwr - Queued writes support module (prepare/execute write)
  
 
@@ -40,19 +123,25 @@
 #ifndef PEER_MANAGER_ENABLED
 #define PEER_MANAGER_ENABLED 0
 #endif
-// <o> PM_MAX_REGISTRANTS  
-// <i> Number of event handlers that can be registered.
-
+// <o> PM_MAX_REGISTRANTS - Number of event handlers that can be registered. 
 #ifndef PM_MAX_REGISTRANTS
 #define PM_MAX_REGISTRANTS 3
 #endif
 
-// <o> PM_FLASH_BUFFERS  
-// <i> Number of internal buffers for flash operations.
+// <o> PM_FLASH_BUFFERS - Number of internal buffers for flash operations. 
 // <i> Decrease this value to lower RAM usage.
 
 #ifndef PM_FLASH_BUFFERS
-#define PM_FLASH_BUFFERS 8
+#define PM_FLASH_BUFFERS 2
+#endif
+
+// <q> PM_CENTRAL_ENABLED  - Enable/disable central-specific Peer Manager functionality.
+ 
+
+// <i> Enable/disable central-specific Peer Manager functionality.
+
+#ifndef PM_CENTRAL_ENABLED
+#define PM_CENTRAL_ENABLED 1
 #endif
 
 // </e>
@@ -193,7 +282,7 @@
  
 
 #ifndef BLE_NUS_ENABLED
-#define BLE_NUS_ENABLED 0
+#define BLE_NUS_ENABLED 1
 #endif
 
 // <q> BLE_RSCS_C_ENABLED  - ble_rscs_c - Running Speed and Cadence Client
@@ -310,6 +399,19 @@
 #endif
 
 // </e>
+
+// <q> APP_USBD_CONFIG_PROVIDE_SOF_TIMESTAMP  - Provide a function that generates timestamps for logs based on the current SOF
+ 
+
+// <i> The function app_usbd_sof_timestamp_get will be implemented if the logger is enabled. 
+// <i> Use it when initializing the logger. 
+// <i> SOF processing will be always enabled when this configuration parameter is active. 
+// <i> Notice that this option is configured outside of APP_USBD_CONFIG_LOG_ENABLED. 
+// <i> This means that it will work even if the logging in this very module is disabled. 
+
+#ifndef APP_USBD_CONFIG_PROVIDE_SOF_TIMESTAMP
+#define APP_USBD_CONFIG_PROVIDE_SOF_TIMESTAMP 0
+#endif
 
 // <e> APP_USBD_CONFIG_LOG_ENABLED - Enable logging in the module
 //==========================================================
@@ -1392,6 +1494,30 @@
 #define SPI_DEFAULT_CONFIG_IRQ_PRIORITY 7
 #endif
 
+// <o> SPI_DEFAULT_FREQUENCY  - SPI frequency
+ 
+// <33554432=> 125 kHz 
+// <67108864=> 250 kHz 
+// <134217728=> 500 kHz 
+// <268435456=> 1 MHz 
+// <536870912=> 2 MHz 
+// <1073741824=> 4 MHz 
+// <2147483648=> 8 MHz 
+
+#ifndef SPI_DEFAULT_FREQUENCY
+#define SPI_DEFAULT_FREQUENCY 1073741824
+#endif
+
+// <o> NRF_SPI_DRV_MISO_PULLUP_CFG  - MISO PIN pull-up configuration.
+ 
+// <0=> NRF_GPIO_PIN_NOPULL 
+// <1=> NRF_GPIO_PIN_PULLDOWN 
+// <3=> NRF_GPIO_PIN_PULLUP 
+
+#ifndef NRF_SPI_DRV_MISO_PULLUP_CFG
+#define NRF_SPI_DRV_MISO_PULLUP_CFG 1
+#endif
+
 // <e> SPI0_ENABLED - Enable SPI0 instance
 //==========================================================
 #ifndef SPI0_ENABLED
@@ -1402,20 +1528,6 @@
 
 #ifndef SPI0_USE_EASY_DMA
 #define SPI0_USE_EASY_DMA 1
-#endif
-
-// <o> SPI0_DEFAULT_FREQUENCY  - SPI frequency
- 
-// <33554432=> 125 kHz 
-// <67108864=> 250 kHz 
-// <134217728=> 500 kHz 
-// <268435456=> 1 MHz 
-// <536870912=> 2 MHz 
-// <1073741824=> 4 MHz 
-// <2147483648=> 8 MHz 
-
-#ifndef SPI0_DEFAULT_FREQUENCY
-#define SPI0_DEFAULT_FREQUENCY 1073741824
 #endif
 
 // </e>
@@ -1432,20 +1544,6 @@
 #define SPI1_USE_EASY_DMA 1
 #endif
 
-// <o> SPI1_DEFAULT_FREQUENCY  - SPI frequency
- 
-// <33554432=> 125 kHz 
-// <67108864=> 250 kHz 
-// <134217728=> 500 kHz 
-// <268435456=> 1 MHz 
-// <536870912=> 2 MHz 
-// <1073741824=> 4 MHz 
-// <2147483648=> 8 MHz 
-
-#ifndef SPI1_DEFAULT_FREQUENCY
-#define SPI1_DEFAULT_FREQUENCY 1073741824
-#endif
-
 // </e>
 
 // <e> SPI2_ENABLED - Enable SPI2 instance
@@ -1458,20 +1556,6 @@
 
 #ifndef SPI2_USE_EASY_DMA
 #define SPI2_USE_EASY_DMA 1
-#endif
-
-// <o> SPI2_DEFAULT_FREQUENCY  - SPI frequency
- 
-// <33554432=> 125 kHz 
-// <67108864=> 250 kHz 
-// <134217728=> 500 kHz 
-// <268435456=> 1 MHz 
-// <536870912=> 2 MHz 
-// <1073741824=> 4 MHz 
-// <2147483648=> 8 MHz 
-
-#ifndef SPI2_DEFAULT_FREQUENCY
-#define SPI2_DEFAULT_FREQUENCY 1073741824
 #endif
 
 // </e>
@@ -1937,6 +2021,13 @@
 // <h> nRF_Libraries 
 
 //==========================================================
+// <q> APP_FIFO_ENABLED  - app_fifo - Software FIFO implementation
+ 
+
+#ifndef APP_FIFO_ENABLED
+#define APP_FIFO_ENABLED 1
+#endif
+
 // <q> APP_GPIOTE_ENABLED  - app_gpiote - GPIOTE events dispatcher
  
 
@@ -1954,7 +2045,7 @@
 // <e> APP_SCHEDULER_ENABLED - app_scheduler - Events scheduler
 //==========================================================
 #ifndef APP_SCHEDULER_ENABLED
-#define APP_SCHEDULER_ENABLED 0
+#define APP_SCHEDULER_ENABLED 1
 #endif
 // <q> APP_SCHEDULER_WITH_PAUSE  - Enabling pause feature
  
@@ -2052,7 +2143,7 @@
 
 // </e>
 
-// <q> APP_TWI_ENABLED  - app_twi - TWI transaction manager
+// <q> APP_TWI_ENABLED  - app_twi - TWI transaction manager wrapper. Switch to nrf_twi_mngr usage.
  
 
 #ifndef APP_TWI_ENABLED
@@ -2062,7 +2153,7 @@
 // <e> APP_UART_ENABLED - app_uart - UART driver
 //==========================================================
 #ifndef APP_UART_ENABLED
-#define APP_UART_ENABLED 0
+#define APP_UART_ENABLED 1
 #endif
 // <o> APP_UART_DRIVER_INSTANCE  - UART instance used
  
@@ -2491,6 +2582,57 @@
 #define MEMORY_MANAGER_XXSMALL_BLOCK_SIZE 32
 #endif
 
+// <e> MEM_MANAGER_CONFIG_LOG_ENABLED - Enables logging in the module.
+//==========================================================
+#ifndef MEM_MANAGER_CONFIG_LOG_ENABLED
+#define MEM_MANAGER_CONFIG_LOG_ENABLED 0
+#endif
+// <o> MEM_MANAGER_CONFIG_LOG_LEVEL  - Default Severity level
+ 
+// <0=> Off 
+// <1=> Error 
+// <2=> Warning 
+// <3=> Info 
+// <4=> Debug 
+
+#ifndef MEM_MANAGER_CONFIG_LOG_LEVEL
+#define MEM_MANAGER_CONFIG_LOG_LEVEL 3
+#endif
+
+// <o> MEM_MANAGER_CONFIG_INFO_COLOR  - ANSI escape code prefix.
+ 
+// <0=> Default 
+// <1=> Black 
+// <2=> Red 
+// <3=> Green 
+// <4=> Yellow 
+// <5=> Blue 
+// <6=> Magenta 
+// <7=> Cyan 
+// <8=> White 
+
+#ifndef MEM_MANAGER_CONFIG_INFO_COLOR
+#define MEM_MANAGER_CONFIG_INFO_COLOR 0
+#endif
+
+// <o> MEM_MANAGER_CONFIG_DEBUG_COLOR  - ANSI escape code prefix.
+ 
+// <0=> Default 
+// <1=> Black 
+// <2=> Red 
+// <3=> Green 
+// <4=> Yellow 
+// <5=> Blue 
+// <6=> Magenta 
+// <7=> Cyan 
+// <8=> White 
+
+#ifndef MEM_MANAGER_CONFIG_DEBUG_COLOR
+#define MEM_MANAGER_CONFIG_DEBUG_COLOR 0
+#endif
+
+// </e>
+
 // <q> MEM_MANAGER_DISABLE_API_PARAM_CHECK  - Disable API parameter checks in the module.
  
 
@@ -2633,7 +2775,7 @@
 // <e> NRF_FSTORAGE_ENABLED - nrf_fstorage - Flash abstraction library
 //==========================================================
 #ifndef NRF_FSTORAGE_ENABLED
-#define NRF_FSTORAGE_ENABLED 0
+#define NRF_FSTORAGE_ENABLED 1
 #endif
 // <h> nrf_fstorage_sd - Implementation using the SoftDevice.
 
@@ -2804,6 +2946,20 @@
 #define NRF_STRERROR_ENABLED 1
 #endif
 
+// <q> NRF_TWI_MNGR_ENABLED  - nrf_twi_mngr - TWI transaction manager
+ 
+
+#ifndef NRF_TWI_MNGR_ENABLED
+#define NRF_TWI_MNGR_ENABLED 0
+#endif
+
+// <q> RETARGET_ENABLED  - retarget - Retargeting stdio functions
+ 
+
+#ifndef RETARGET_ENABLED
+#define RETARGET_ENABLED 1
+#endif
+
 // <q> SLIP_ENABLED  - slip - SLIP encoding and decoding
  
 
@@ -2811,31 +2967,38 @@
 #define SLIP_ENABLED 0
 #endif
 
-// <h> nrf_cli - Command line interface.
+// <h> nrf_cli - Command line interface
 
 //==========================================================
-// <q> NRF_CLI_ENABLED  - Enable/disable CLI module.
+// <q> NRF_CLI_ENABLED  - Enable/disable the CLI module.
  
 
 #ifndef NRF_CLI_ENABLED
 #define NRF_CLI_ENABLED 0
 #endif
 
-// <o> NRF_CLI_ARGC_MAX - Maximum number of parameters passed to command handler. 
+// <o> NRF_CLI_ARGC_MAX - Maximum number of parameters passed to the command handler. 
 #ifndef NRF_CLI_ARGC_MAX
 #define NRF_CLI_ARGC_MAX 12
 #endif
 
-// <q> NRF_CLI_BUILD_IN_CMDS_ENABLED  - CLI build in commands.
+// <q> NRF_CLI_BUILD_IN_CMDS_ENABLED  - CLI built-in commands.
  
 
 #ifndef NRF_CLI_BUILD_IN_CMDS_ENABLED
 #define NRF_CLI_BUILD_IN_CMDS_ENABLED 1
 #endif
 
-// <o> NRF_CLI_CMD_BUFF_SIZE - Maximum buffer size for single command. 
+// <o> NRF_CLI_CMD_BUFF_SIZE - Maximum buffer size for a single command. 
 #ifndef NRF_CLI_CMD_BUFF_SIZE
 #define NRF_CLI_CMD_BUFF_SIZE 128
+#endif
+
+// <q> NRF_CLI_ECHO_STATUS  - CLI echo status. If set, echo is ON.
+ 
+
+#ifndef NRF_CLI_ECHO_STATUS
+#define NRF_CLI_ECHO_STATUS 1
 #endif
 
 // <o> NRF_CLI_PRINTF_BUFF_SIZE - Maximum print buffer size. 
@@ -2848,12 +3011,12 @@
 #ifndef NRF_CLI_HISTORY_ENABLED
 #define NRF_CLI_HISTORY_ENABLED 1
 #endif
-// <o> NRF_CLI_HISTORY_ELEMENT_SIZE - Size of one memory object reserved for CLI history 
+// <o> NRF_CLI_HISTORY_ELEMENT_SIZE - Size of one memory object reserved for CLI history. 
 #ifndef NRF_CLI_HISTORY_ELEMENT_SIZE
 #define NRF_CLI_HISTORY_ELEMENT_SIZE 32
 #endif
 
-// <o> NRF_CLI_HISTORY_ELEMENT_COUNT - Number of history memory objects 
+// <o> NRF_CLI_HISTORY_ELEMENT_COUNT - Number of history memory objects. 
 #ifndef NRF_CLI_HISTORY_ELEMENT_COUNT
 #define NRF_CLI_HISTORY_ELEMENT_COUNT 8
 #endif
@@ -2864,7 +3027,14 @@
  
 
 #ifndef NRF_CLI_VT100_COLORS_ENABLED
-#define NRF_CLI_VT100_COLORS_ENABLED 0
+#define NRF_CLI_VT100_COLORS_ENABLED 1
+#endif
+
+// <q> NRF_CLI_STATISTICS_ENABLED  - Enable CLI statistics.
+ 
+
+#ifndef NRF_CLI_STATISTICS_ENABLED
+#define NRF_CLI_STATISTICS_ENABLED 1
 #endif
 
 // <q> NRF_CLI_LOG_BACKEND  - Enable logger backend interface.
@@ -2907,58 +3077,13 @@
 
 // </e>
 
-// <e> NRF_LOG_BACKEND_UART_ENABLED - nrf_log_backend_uart - Log UART backend
-//==========================================================
-#ifndef NRF_LOG_BACKEND_UART_ENABLED
-#define NRF_LOG_BACKEND_UART_ENABLED 1
-#endif
-// <o> NRF_LOG_BACKEND_UART_TX_PIN - UART TX pin 
-#ifndef NRF_LOG_BACKEND_UART_TX_PIN
-#define NRF_LOG_BACKEND_UART_TX_PIN 6
-#endif
-
-// <o> NRF_LOG_BACKEND_UART_BAUDRATE  - Default Baudrate
- 
-// <323584=> 1200 baud 
-// <643072=> 2400 baud 
-// <1290240=> 4800 baud 
-// <2576384=> 9600 baud 
-// <3862528=> 14400 baud 
-// <5152768=> 19200 baud 
-// <7716864=> 28800 baud 
-// <10289152=> 38400 baud 
-// <15400960=> 57600 baud 
-// <20615168=> 76800 baud 
-// <30801920=> 115200 baud 
-// <61865984=> 230400 baud 
-// <67108864=> 250000 baud 
-// <121634816=> 460800 baud 
-// <251658240=> 921600 baud 
-// <268435456=> 1000000 baud 
-
-#ifndef NRF_LOG_BACKEND_UART_BAUDRATE
-#define NRF_LOG_BACKEND_UART_BAUDRATE 30801920
-#endif
-
-// <o> NRF_LOG_BACKEND_UART_TEMP_BUFFER_SIZE - Size of buffer for partially processed strings. 
-// <i> Size of the buffer is a trade-off between RAM usage and processing.
-// <i> if buffer is smaller then strings will often be fragmented.
-// <i> It is recommended to use size which will fit typical log and only the
-// <i> longer one will be fragmented.
-
-#ifndef NRF_LOG_BACKEND_UART_TEMP_BUFFER_SIZE
-#define NRF_LOG_BACKEND_UART_TEMP_BUFFER_SIZE 64
-#endif
-
-// </e>
-
-// <h> nrf_log - Logging
+// <h> nrf_log - Logger
 
 //==========================================================
 // <e> NRF_LOG_ENABLED - Logging module for nRF5 SDK
 //==========================================================
 #ifndef NRF_LOG_ENABLED
-#define NRF_LOG_ENABLED 1
+#define NRF_LOG_ENABLED 0
 #endif
 // <e> NRF_LOG_USES_COLORS - If enabled then ANSI escape code for colors is prefixed to every string
 //==========================================================
@@ -2994,7 +3119,7 @@
 // <8=> White 
 
 #ifndef NRF_LOG_ERROR_COLOR
-#define NRF_LOG_ERROR_COLOR 0
+#define NRF_LOG_ERROR_COLOR 2
 #endif
 
 // <o> NRF_LOG_WARNING_COLOR  - ANSI escape code prefix.
@@ -3010,7 +3135,7 @@
 // <8=> White 
 
 #ifndef NRF_LOG_WARNING_COLOR
-#define NRF_LOG_WARNING_COLOR 0
+#define NRF_LOG_WARNING_COLOR 4
 #endif
 
 // </e>
@@ -3024,7 +3149,7 @@
 // <4=> Debug 
 
 #ifndef NRF_LOG_DEFAULT_LEVEL
-#define NRF_LOG_DEFAULT_LEVEL 4
+#define NRF_LOG_DEFAULT_LEVEL 3
 #endif
 
 // <q> NRF_LOG_DEFERRED  - Enable deffered logger.
@@ -4517,13 +4642,6 @@
 
 // </e>
 
-// <q> MEM_MANAGER_ENABLE_LOGS  - Enable debug trace in the module.
- 
-
-#ifndef MEM_MANAGER_ENABLE_LOGS
-#define MEM_MANAGER_ENABLE_LOGS 0
-#endif
-
 // <e> NRF_BALLOC_CONFIG_LOG_ENABLED - Enables logging in the module.
 //==========================================================
 #ifndef NRF_BALLOC_CONFIG_LOG_ENABLED
@@ -4983,6 +5101,57 @@
 
 // </e>
 
+// <e> NRF_SORTLIST_CONFIG_LOG_ENABLED - Enables logging in the module.
+//==========================================================
+#ifndef NRF_SORTLIST_CONFIG_LOG_ENABLED
+#define NRF_SORTLIST_CONFIG_LOG_ENABLED 0
+#endif
+// <o> NRF_SORTLIST_CONFIG_LOG_LEVEL  - Default Severity level
+ 
+// <0=> Off 
+// <1=> Error 
+// <2=> Warning 
+// <3=> Info 
+// <4=> Debug 
+
+#ifndef NRF_SORTLIST_CONFIG_LOG_LEVEL
+#define NRF_SORTLIST_CONFIG_LOG_LEVEL 3
+#endif
+
+// <o> NRF_SORTLIST_CONFIG_INFO_COLOR  - ANSI escape code prefix.
+ 
+// <0=> Default 
+// <1=> Black 
+// <2=> Red 
+// <3=> Green 
+// <4=> Yellow 
+// <5=> Blue 
+// <6=> Magenta 
+// <7=> Cyan 
+// <8=> White 
+
+#ifndef NRF_SORTLIST_CONFIG_INFO_COLOR
+#define NRF_SORTLIST_CONFIG_INFO_COLOR 0
+#endif
+
+// <o> NRF_SORTLIST_CONFIG_DEBUG_COLOR  - ANSI escape code prefix.
+ 
+// <0=> Default 
+// <1=> Black 
+// <2=> Red 
+// <3=> Green 
+// <4=> Yellow 
+// <5=> Blue 
+// <6=> Magenta 
+// <7=> Cyan 
+// <8=> White 
+
+#ifndef NRF_SORTLIST_CONFIG_DEBUG_COLOR
+#define NRF_SORTLIST_CONFIG_DEBUG_COLOR 0
+#endif
+
+// </e>
+
 // </h> 
 //==========================================================
 
@@ -5060,7 +5229,7 @@
 //==========================================================
 // <o> NRF_SDH_BLE_PERIPHERAL_LINK_COUNT - Maximum number of peripheral links. 
 #ifndef NRF_SDH_BLE_PERIPHERAL_LINK_COUNT
-#define NRF_SDH_BLE_PERIPHERAL_LINK_COUNT 0
+#define NRF_SDH_BLE_PERIPHERAL_LINK_COUNT 1
 #endif
 
 // <o> NRF_SDH_BLE_CENTRAL_LINK_COUNT - Maximum number of central links. 
@@ -5080,17 +5249,17 @@
 
 // <o> NRF_SDH_BLE_GATT_MAX_MTU_SIZE - Static maximum MTU size. 
 #ifndef NRF_SDH_BLE_GATT_MAX_MTU_SIZE
-#define NRF_SDH_BLE_GATT_MAX_MTU_SIZE 23
+#define NRF_SDH_BLE_GATT_MAX_MTU_SIZE 247
 #endif
 
 // <o> NRF_SDH_BLE_GATTS_ATTR_TAB_SIZE - Attribute Table size in bytes. The size must be a multiple of 4. 
 #ifndef NRF_SDH_BLE_GATTS_ATTR_TAB_SIZE
-#define NRF_SDH_BLE_GATTS_ATTR_TAB_SIZE 248
+#define NRF_SDH_BLE_GATTS_ATTR_TAB_SIZE 1408
 #endif
 
 // <o> NRF_SDH_BLE_VS_UUID_COUNT - The number of vendor-specific UUIDs. 
 #ifndef NRF_SDH_BLE_VS_UUID_COUNT
-#define NRF_SDH_BLE_VS_UUID_COUNT 0
+#define NRF_SDH_BLE_VS_UUID_COUNT 1
 #endif
 
 // <q> NRF_SDH_BLE_SERVICE_CHANGED  - Include the Service Changed characteristic in the Attribute Table.
@@ -5111,7 +5280,7 @@
 // <i> The priority level of a handler determines the order in which it receives events, with respect to other handlers.
 
 #ifndef NRF_SDH_BLE_OBSERVER_PRIO_LEVELS
-#define NRF_SDH_BLE_OBSERVER_PRIO_LEVELS 3
+#define NRF_SDH_BLE_OBSERVER_PRIO_LEVELS 4
 #endif
 
 // <h> BLE Observers priorities - Invididual priorities
@@ -5121,7 +5290,7 @@
 // <i> Priority with which BLE events are dispatched to the Advertising module.
 
 #ifndef BLE_ADV_BLE_OBSERVER_PRIO
-#define BLE_ADV_BLE_OBSERVER_PRIO 2
+#define BLE_ADV_BLE_OBSERVER_PRIO 1
 #endif
 
 // <o> BLE_ANCS_C_BLE_OBSERVER_PRIO  
@@ -5163,7 +5332,7 @@
 // <i> Priority with which BLE events are dispatched to the Connection parameters module.
 
 #ifndef BLE_CONN_PARAMS_BLE_OBSERVER_PRIO
-#define BLE_CONN_PARAMS_BLE_OBSERVER_PRIO 2
+#define BLE_CONN_PARAMS_BLE_OBSERVER_PRIO 1
 #endif
 
 // <o> BLE_CONN_STATE_BLE_OBSERVER_PRIO  
@@ -5355,6 +5524,13 @@
 #define NRF_BLE_CGMS_BLE_OBSERVER_PRIO 2
 #endif
 
+// <o> NRF_BLE_ES_BLE_OBSERVER_PRIO  
+// <i> Priority with which BLE events are dispatched to the Eddystone module.
+
+#ifndef NRF_BLE_ES_BLE_OBSERVER_PRIO
+#define NRF_BLE_ES_BLE_OBSERVER_PRIO 2
+#endif
+
 // <o> NRF_BLE_GATTS_C_BLE_OBSERVER_PRIO  
 // <i> Priority with which BLE events are dispatched to the GATT Service Client.
 
@@ -5366,7 +5542,7 @@
 // <i> Priority with which BLE events are dispatched to the GATT module.
 
 #ifndef NRF_BLE_GATT_BLE_OBSERVER_PRIO
-#define NRF_BLE_GATT_BLE_OBSERVER_PRIO 2
+#define NRF_BLE_GATT_BLE_OBSERVER_PRIO 1
 #endif
 
 // <o> NRF_BLE_QWR_BLE_OBSERVER_PRIO  
@@ -5376,11 +5552,9 @@
 #define NRF_BLE_QWR_BLE_OBSERVER_PRIO 2
 #endif
 
-// <o> PM_BLE_OBSERVER_PRIO  
-// <i> Priority with which BLE events are dispatched to the Peer Manager module.
-
+// <o> PM_BLE_OBSERVER_PRIO - Priority with which BLE events are dispatched to the Peer Manager module. 
 #ifndef PM_BLE_OBSERVER_PRIO
-#define PM_BLE_OBSERVER_PRIO 2
+#define PM_BLE_OBSERVER_PRIO 1
 #endif
 
 // </h> 
