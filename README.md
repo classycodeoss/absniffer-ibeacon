@@ -2,6 +2,21 @@
 
 nRF52-based configurable iBeacon for running on ABSniffer USB 528 Dongle
 
+## Build Instructions
+
+One-time setup, flash erase and flash of SoftDevice (nRF BLE stack)
+```
+$ cmake -H. -B"build"
+$ cmake --build build --target FLASH_ERASE
+$ cmake --build build --target FLASH_SOFTDEVICE
+```
+
+Build and flash beacon firmware:
+```
+$ cmake --build build --target FLASH_absniffer-ibeacon
+
+```
+
 ## Serial Command Interface
 
 When plugged in to a USB port, the device exposes a virtual serial port, over which it
@@ -10,11 +25,12 @@ Commands are in textual form and terminated by line breaks.
 
 ### Retrieve Device Information
 
-The `I` command is used to retrieve the firmware version and MAC address of the device.
+The `I` command is used to retrieve the firmware version, MAC address and beacon identity
+of the device.
 
 ```
 > I
-< OK V1.0.0 4e:60:b8:9c:cb:ed
+< OK V1.0.0 ED:CB:9C:B8:60:4E CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC 1 1
 ```
 
 ### Set iBeacon Configuration
@@ -27,3 +43,5 @@ The major and minor values are given as integers.
 > C AABBCCDDAABBCCDDAABBCCDDAABBCCDD 123 456
 < OK
 ```
+
+The configuration is stored persisently in flash memory.
