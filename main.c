@@ -23,7 +23,6 @@
 #include "nrf_sdh_ble.h"
 #include "ble_advdata.h"
 #include "app_timer.h"
-#include "fds.h"
 
 // Own modules
 #include "uart_cmd.h"
@@ -59,9 +58,6 @@ static uint8_t m_beacon_info[APP_BEACON_INFO_LENGTH];
 static ble_advdata_manuf_data_t m_manuf_specific_data;
 
 static uart_cmd_client_t m_uart_cmd_client;
-
-// Flash data storage initialization is asynchronous, this holds its result
-static bool volatile m_fds_initialized;
 
 void assert_nrf_callback(uint16_t line_num, const uint8_t *p_file_name) {
     app_error_handler(DEAD_BEEF, line_num, p_file_name);
@@ -160,19 +156,6 @@ static void uart_cmd_evt_handler(const uart_cmd_evt_t *p_uart_cmd_evt) {
     }
 }
 
-// handler for asynchronous flash data storage events
-static void fds_evt_handler(fds_evt_t const *p_evt) {
-    switch (p_evt->id) {
-        case FDS_EVT_INIT:
-            if (p_evt->result == FDS_SUCCESS) {
-                m_fds_initialized = true;
-            }
-            break;
-        default:
-            break;
-    }
-}
-
 static void ble_stack_init(void) {
     ret_code_t err_code;
 
@@ -207,22 +190,6 @@ static void uart_init() {
     APP_ERROR_CHECK(err_code);
 }
 
-static void flash_data_storage_init() {
-    ret_code_t err_code;
-    err_code = fds_register(fds_evt_handler);
-    APP_ERROR_CHECK(err_code);
-
-    m_fds_initialized = false;
-    err_code = fds_init();
-    APP_ERROR_CHECK(err_code);
-}
-
-static void wait_for_fds_initialization() {
-    while (!m_fds_initialized) {
-        sd_app_evt_wait();
-    }
-}
-
 int main(void) {
     ret_code_t err_code;
 
@@ -231,8 +198,8 @@ int main(void) {
     ble_stack_init();
 
     // initialize and wait for storage, load configuration
-    flash_data_storage_init();
-    wait_for_fds_initialization();
+    err_code = nvconfig_init();
+    APP_ERROR_CHECK(err_code);
     err_code = nvconfig_load(&m_beacon_cfg);
     APP_ERROR_CHECK(err_code);
 

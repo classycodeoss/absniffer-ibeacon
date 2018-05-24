@@ -9,6 +9,7 @@ typedef struct {
     uint16_t beacon_minor;
 } configuration_t;
 
+uint32_t nvconfig_init();
 uint32_t nvconfig_save(configuration_t* cfg);
 uint32_t nvconfig_load(configuration_t* cfg);
 

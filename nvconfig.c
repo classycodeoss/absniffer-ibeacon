@@ -37,6 +37,39 @@ static fds_record_t const m_default_record = {
         .data.length_words = (sizeof(m_default_cfg) + 3) / sizeof(uint32_t)
 };
 
+// Flash data storage initialization is asynchronous, this holds its result
+static bool volatile m_fds_initialized;
+
+// handler for asynchronous flash data storage events
+static void fds_evt_handler(fds_evt_t const *p_evt) {
+    switch (p_evt->id) {
+        case FDS_EVT_INIT:
+            if (p_evt->result == FDS_SUCCESS) {
+                m_fds_initialized = true;
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+uint32_t nvconfig_init() {
+    ret_code_t err_code;
+    err_code = fds_register(fds_evt_handler);
+    if (err_code != FDS_SUCCESS) return err_code;
+
+    m_fds_initialized = false;
+    err_code = fds_init();
+    if (err_code != FDS_SUCCESS) return err_code;
+
+    // wait for initialization to finish
+    while (!m_fds_initialized) {
+        sd_app_evt_wait();
+    }
+
+    return 0;
+}
+
 uint32_t nvconfig_save(configuration_t *cfg) {
     ret_code_t err_code;
     fds_record_desc_t desc = {0};
