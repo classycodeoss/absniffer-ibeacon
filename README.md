@@ -4,15 +4,36 @@ nRF52-based configurable iBeacon for running on ABSniffer USB 528 Dongle
 
 ## Build Instructions
 
-One-time setup, flash erase and flash of SoftDevice (nRF BLE stack)
+This guide assumes you have already have the nRF SDK (version 14.2.0), the command-line tools
+and an ARM GCC toolchain installed on your machine. It's best to verify this by building one
+of the SDK samples first.
+
+Create a file called `CMakeEnv.cmake` and add the paths to those tools. Example:
+
+```
+set(ARM_NONE_EABI_TOOLCHAIN_PATH "/Users/ahs/local/gcc-arm-none-eabi-7-2017-q4-major")
+set(NRF5_SDK_PATH "/Users/ahs/local/nRF5_SDK_14.2.0_17b948a")
+set(NRFJPROG "/Users/ahs/local/nRF5x-Command-Line-Tools_9_7_2_OSX/nrfjprog/nrfjprog")
+```
+
+
+Create the Makefiles, erase the flash.flash of SoftDevice 
 ```
 $ cmake -H. -B"build"
 $ cmake --build build --target FLASH_ERASE
 $ cmake --build build --target FLASH_SOFTDEVICE
 ```
 
+Flash the SoftDevice (nRF BLE stack):
+
+```
+$ cmake --build build --target FLASH_SOFTDEVICE
+```
+
+
 Build and flash beacon firmware:
 ```
+$ cmake --build build --target absniffer-ibeacon
 $ cmake --build build --target FLASH_absniffer-ibeacon
 
 ```
